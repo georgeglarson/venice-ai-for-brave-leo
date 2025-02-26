@@ -7,10 +7,20 @@ A universal tool to seamlessly configure Leo AI helper in Brave browser to use V
 ## ⚡ Quickstart
 
 1. **Download the executable** for your platform:
-   - [Windows (leo_venice_config.exe)](https://github.com/georgeglarson/leo-venice-config/releases/latest/download/leo_venice_config.exe)
+   - [Windows (leo_venice_config.exe)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe)
+   - [macOS (leo_venice_config_mac)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_mac)
+   - [Linux (leo_venice_config_linux)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_linux)
 
 2. **Run the executable**:
-   - On Windows: Double-click the downloaded file or run it from the command line
+   - **Windows**: Double-click the downloaded file or run it from the command line
+   - **macOS**: Open Terminal, navigate to the download location, and run:
+     ```bash
+     chmod +x ./leo_venice_config_mac && ./leo_venice_config_mac
+     ```
+   - **Linux**: Open Terminal, navigate to the download location, and run:
+     ```bash
+     chmod +x ./leo_venice_config_linux && ./leo_venice_config_linux
+     ```
    - The tool will prompt you for your Venice.AI API key
 
 3. **Restart Brave browser** to apply the changes

@@ -11,21 +11,20 @@ import (
     "path/filepath"
     "runtime"
     "strings"
-    "syscall"
     "time"
-    "unsafe"
 
     "github.com/google/uuid"
 )
 
 // Windows API constants and types for MessageBox (Windows only)
-const (
-    MB_OK              = 0x00000000
-    MB_OKCANCEL        = 0x00000001
-    MB_ICONINFORMATION = 0x00000040
-    MB_ICONQUESTION    = 0x00000020
-    IDOK               = 1
-    IDCANCEL           = 2
+// These are only used on Windows
+var (
+    MB_OK              uint32 = 0x00000000
+    MB_OKCANCEL        uint32 = 0x00000001
+    MB_ICONINFORMATION uint32 = 0x00000040
+    MB_ICONQUESTION    uint32 = 0x00000020
+    IDOK               int    = 1
+    IDCANCEL           int    = 2
 )
 
 // Configuration settings
@@ -57,21 +56,9 @@ type BravePreferences struct {
 }
 
 // ShowMessageBox displays a Windows MessageBox (Windows only)
+// This is a stub that will be replaced by the platform-specific implementation
 func ShowMessageBox(title, text string, flags uint32) int {
-    if runtime.GOOS != "windows" {
-        return 0 // No-op on non-Windows
-    }
-    user32 := syscall.NewLazyDLL("user32.dll")
-    getActiveWindow := user32.NewProc("GetActiveWindow")
-    messageBox := user32.NewProc("MessageBoxW")
-    hwnd, _, _ := getActiveWindow.Call()
-    ret, _, _ := messageBox.Call(
-        hwnd,
-        uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(text))),
-        uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))),
-        uintptr(flags),
-    )
-    return int(ret)
+    return 0 // Default implementation does nothing
 }
 
 // GetAPIKeyFromDialog shows a dialog (Windows) or CLI prompt (other platforms)

@@ -35,6 +35,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     Download for Windows
                 </a>
+                <a href="#downloads" class="btn btn-secondary">All Platforms</a>
                 <a href="#quickstart" class="btn btn-secondary">Quick Start Guide</a>
             </div>
         </div>
@@ -91,6 +92,51 @@
             </div>
         </section>
 
+        <section id="downloads" class="section alt-bg">
+            <div class="container">
+                <h2>📥 Downloads</h2>
+                <p>Venice AI for Brave Leo is a universal tool available for all major platforms:</p>
+                
+                <div class="download-cards">
+                    <div class="download-card">
+                        <div class="download-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        </div>
+                        <h3>Windows</h3>
+                        <p>For Windows 7, 8, 10, and 11</p>
+                        <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe" class="btn btn-sm">Download .exe</a>
+                    </div>
+                    
+                    <div class="download-card">
+                        <div class="download-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 1 9 9v7.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5V12a9 9 0 0 1 9-9Z"></path><path d="M7 13v-3a5 5 0 0 1 10 0v3"></path></svg>
+                        </div>
+                        <h3>macOS</h3>
+                        <p>For macOS 10.13 and newer</p>
+                        <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_mac" class="btn btn-sm">Download for Mac</a>
+                    </div>
+                    
+                    <div class="download-card">
+                        <div class="download-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"></path><path d="M12 2v20"></path><path d="M2 12h20"></path></svg>
+                        </div>
+                        <h3>Linux</h3>
+                        <p>For most Linux distributions</p>
+                        <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_linux" class="btn btn-sm">Download for Linux</a>
+                    </div>
+                </div>
+                
+                <div class="source-code">
+                    <p>
+                        <strong>Source Code:</strong>
+                        <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo" target="_blank">
+                            View on GitHub
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <section id="quickstart" class="container section">
             <h2>⚡ Quickstart</h2>
             <div class="steps">
@@ -99,16 +145,30 @@
                     <div class="step-content">
                         <h3>Download the executable</h3>
                         <p>Download the tool for your platform:</p>
-                        <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe" class="btn btn-sm">
-                            Windows (.exe)
-                        </a>
+                        <div class="quickstart-downloads">
+                            <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe" class="btn btn-sm">
+                                Windows (.exe)
+                            </a>
+                            <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_mac" class="btn btn-sm">
+                                macOS
+                            </a>
+                            <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_linux" class="btn btn-sm">
+                                Linux
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <h3>Run the executable</h3>
-                        <p>On Windows, simply double-click the downloaded file. The tool will prompt you for your Venice.AI API key.</p>
+                        <p>Run the downloaded file for your platform:</p>
+                        <ul>
+                            <li><strong>Windows:</strong> Double-click the .exe file</li>
+                            <li><strong>macOS:</strong> Open Terminal, navigate to the download location, and run <code>chmod +x ./leo_venice_config_mac && ./leo_venice_config_mac</code></li>
+                            <li><strong>Linux:</strong> Open Terminal, navigate to the download location, and run <code>chmod +x ./leo_venice_config_linux && ./leo_venice_config_linux</code></li>
+                        </ul>
+                        <p>The tool will prompt you for your Venice.AI API key.</p>
                         <p class="note">Don't have an API key? <a href="https://venice.ai/settings/api" target="_blank">Get one here</a></p>
                     </div>
                 </div>

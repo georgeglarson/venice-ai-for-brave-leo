@@ -195,29 +195,48 @@ header {
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* Features */
-.features-grid {
+/* Features and Downloads */
+.features-grid,
+.download-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
 }
 
-.feature-card {
+.feature-card,
+.download-card {
     background-color: white;
     border-radius: var(--border-radius);
     padding: 1.5rem;
     box-shadow: var(--box-shadow);
     transition: var(--transition);
+    text-align: center;
 }
 
-.feature-card:hover {
+.feature-card:hover,
+.download-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.feature-card h3 {
+.feature-card h3,
+.download-card h3 {
     color: var(--primary-color);
     margin-bottom: 0.75rem;
+}
+
+.download-icon {
+    margin: 0 auto 1rem;
+    color: var(--primary-color);
+}
+
+.download-card .btn {
+    margin-top: 1rem;
+}
+
+.source-code {
+    margin-top: 2rem;
+    text-align: center;
 }
 
 /* Steps */
@@ -248,6 +267,13 @@ header {
 
 .step-content {
     flex: 1;
+}
+
+.quickstart-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .note {
