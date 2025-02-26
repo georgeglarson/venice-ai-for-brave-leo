@@ -73,7 +73,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Venice.AI API Key Required"
+$form.Text = "Venice.AI API Key Required - ${AppVersion}"
 $form.Size = New-Object System.Drawing.Size(500, 320)
 $form.StartPosition = "CenterScreen"
 $form.FormBorderStyle = "FixedDialog"
@@ -124,9 +124,9 @@ $form.CancelButton = $cancelButton
 $form.Controls.Add($cancelButton)
 
 $creditLabel = New-Object System.Windows.Forms.Label
-$creditLabel.Location = New-Object System.Drawing.Point(20, 240)
-$creditLabel.Size = New-Object System.Drawing.Size(460, 20)
-$creditLabel.Text = "Created by George Larson - twitter.com/g3ologic - github.com/georgeglarson - george.g.larson@gmail.com"
+$creditLabel.Location = New-Object System.Drawing.Point(20, 220)
+$creditLabel.Size = New-Object System.Drawing.Size(460, 40)
+$creditLabel.Text = "Created by George Larson (github.com/georgeglarson)`nPlease consider me for your next software engineering role!"
 $creditLabel.Font = New-Object System.Drawing.Font("Arial", 8)
 $creditLabel.ForeColor = [System.Drawing.Color]::Gray
 $form.Controls.Add($creditLabel)
