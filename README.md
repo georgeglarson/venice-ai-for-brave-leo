@@ -28,7 +28,11 @@ A universal tool to seamlessly configure Leo AI helper in Brave browser to use V
      ```
    - The tool will prompt you for your Venice.AI API key
 
-3. **Restart Brave browser** to apply the changes
+3. **Completely Close and Restart Brave browser**:
+   - **IMPORTANT**: You must *completely* close Brave browser (including any background processes) and restart it for changes to take effect
+   - On Windows, you may need to check Task Manager and end any Brave processes before restarting
+   - On macOS, right-click the Brave icon in the dock and select "Quit"
+   - On Linux, ensure all Brave processes are terminated with `pkill -9 -i brave`
 
 That's it! Your Brave browser is now configured to use Venice.AI with Leo AI helper.
 

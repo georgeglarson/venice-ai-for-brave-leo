@@ -21,10 +21,13 @@ import (
 var (
     MB_OK              uint32 = 0x00000000
     MB_OKCANCEL        uint32 = 0x00000001
+    MB_YESNOCANCEL     uint32 = 0x00000003
     MB_ICONINFORMATION uint32 = 0x00000040
     MB_ICONQUESTION    uint32 = 0x00000020
     IDOK               int    = 1
     IDCANCEL           int    = 2
+    IDYES              int    = 6
+    IDNO               int    = 7
 )
 
 // Configuration settings
@@ -219,17 +222,41 @@ func main() {
     if isBraveRunning() {
         fmt.Println("WARNING: Brave browser is currently running.")
         if runtime.GOOS == "windows" {
-            if ret := ShowMessageBox("Warning", "Brave is running. Continue anyway?", MB_OKCANCEL|MB_ICONQUESTION); ret != IDOK {
+            ret := ShowMessageBox("Warning", "Brave is running in the background.\n\nFor changes to take effect, Brave must be completely closed.\n\nWould you like to:\n- Click 'Yes' to close Brave and continue\n- Click 'No' to continue without closing Brave\n- Click 'Cancel' to abort", MB_YESNOCANCEL|MB_ICONQUESTION)
+            if ret == IDCANCEL {
                 fmt.Println("Operation cancelled by user.")
                 os.Exit(0)
+            } else if ret == IDYES {
+                fmt.Println("Attempting to close Brave browser...")
+                if !killBraveProcesses() {
+                    if ShowMessageBox("Warning", "Could not completely close Brave. Changes may not take effect until you restart Brave.\n\nContinue anyway?", MB_OKCANCEL|MB_ICONQUESTION) != IDOK {
+                        fmt.Println("Operation cancelled by user.")
+                        os.Exit(0)
+                    }
+                }
             }
         } else {
-            fmt.Print("Continue anyway? (y/n): ")
+            fmt.Println("For changes to take effect, Brave must be completely closed.")
+            fmt.Print("Would you like to close Brave and continue? (y/n/c) [y=yes, n=continue without closing, c=cancel]: ")
             reader := bufio.NewReader(os.Stdin)
             response, _ := reader.ReadString('\n')
-            if strings.ToLower(strings.TrimSpace(response)) != "y" {
+            response = strings.ToLower(strings.TrimSpace(response))
+            
+            if response == "c" {
                 fmt.Println("Operation cancelled by user.")
                 os.Exit(0)
+            } else if response == "y" {
+                fmt.Println("Attempting to close Brave browser...")
+                if !killBraveProcesses() {
+                    fmt.Println("WARNING: Could not completely close Brave. Changes may not take effect until you restart Brave.")
+                    fmt.Print("Continue anyway? (y/n): ")
+                    reader := bufio.NewReader(os.Stdin)
+                    response, _ := reader.ReadString('\n')
+                    if strings.ToLower(strings.TrimSpace(response)) != "y" {
+                        fmt.Println("Operation cancelled by user.")
+                        os.Exit(0)
+                    }
+                }
             }
         }
     }
@@ -322,9 +349,9 @@ func main() {
     }
 
     fmt.Println("Successfully updated Leo AI helper to use Venice.AI!")
-    fmt.Println("Please restart Brave browser for changes to take effect.")
+    fmt.Println("IMPORTANT: If Brave is still running, you MUST completely close and restart it for changes to take effect.")
     if runtime.GOOS == "windows" {
-        ShowMessageBox("Success", "Leo AI updated to use Venice.AI!\nPlease restart Brave to apply changes.", MB_OK|MB_ICONINFORMATION)
+        ShowMessageBox("Success", "Leo AI updated to use Venice.AI!\n\nIMPORTANT: If Brave is still running, you MUST completely close and restart it for changes to take effect.", MB_OK|MB_ICONINFORMATION)
     }
 }
 
@@ -360,8 +387,10 @@ func findPreferencesFile() (string, error) {
     return "", fmt.Errorf("could not find Brave browser's Preferences file")
 }
 
-// isBraveRunning checks if Brave browser is currently running
+// isBraveRunning checks if Brave browser is currently running (including background processes)
 func isBraveRunning() bool {
+    var runningProcesses []string
+    
     switch runtime.GOOS {
     case "windows":
         possibleProcesses := []string{
@@ -375,19 +404,70 @@ func isBraveRunning() bool {
             cmd := exec.Command("tasklist", "/FI", fmt.Sprintf("IMAGENAME eq %s", process), "/NH")
             output, err := cmd.Output()
             if err == nil && len(output) > 0 && !strings.Contains(string(output), "No tasks") && !strings.Contains(string(output), "INFO: No tasks") {
-                return true
+                runningProcesses = append(runningProcesses, process)
             }
         }
-        return false
     case "darwin": // macOS
         cmd := exec.Command("pgrep", "-i", "brave")
         output, err := cmd.Output()
-        return err == nil && len(output) > 0
+        if err == nil && len(output) > 0 {
+            runningProcesses = append(runningProcesses, "brave")
+        }
     default: // Linux and others
         cmd := exec.Command("pgrep", "-i", "brave")
         output, err := cmd.Output()
-        return err == nil && len(output) > 0
+        if err == nil && len(output) > 0 {
+            runningProcesses = append(runningProcesses, "brave")
+        }
     }
+    
+    return len(runningProcesses) > 0
+}
+
+// killBraveProcesses attempts to kill all Brave browser processes
+// Returns true if successful, false otherwise
+func killBraveProcesses() bool {
+    success := true
+    
+    switch runtime.GOOS {
+    case "windows":
+        possibleProcesses := []string{
+            "brave.exe",
+            "brave-browser.exe",
+            "BraveBrowser.exe",
+            "Brave.exe",
+            "Brave-Browser.exe",
+        }
+        for _, process := range possibleProcesses {
+            cmd := exec.Command("taskkill", "/F", "/IM", process)
+            if err := cmd.Run(); err != nil {
+                // Ignore errors as some processes might not exist
+                fmt.Printf("Note: Could not kill %s (may not be running)\n", process)
+            } else {
+                fmt.Printf("Killed process: %s\n", process)
+            }
+        }
+    case "darwin": // macOS
+        cmd := exec.Command("pkill", "-9", "-i", "brave")
+        if err := cmd.Run(); err != nil {
+            fmt.Println("Note: Could not kill Brave processes (may not be running)")
+            success = false
+        } else {
+            fmt.Println("Killed Brave processes")
+        }
+    default: // Linux and others
+        cmd := exec.Command("pkill", "-9", "-i", "brave")
+        if err := cmd.Run(); err != nil {
+            fmt.Println("Note: Could not kill Brave processes (may not be running)")
+            success = false
+        } else {
+            fmt.Println("Killed Brave processes")
+        }
+    }
+    
+    // Verify all processes were killed
+    time.Sleep(500 * time.Millisecond) // Give OS time to update process list
+    return !isBraveRunning() && success
 }
 
 // backupPreferencesFile creates a backup of the Preferences file

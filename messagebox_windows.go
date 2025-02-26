@@ -8,6 +8,14 @@ import (
 	"unsafe"
 )
 
+// Windows API constants for MessageBox
+// These constants are duplicated here to ensure they're available in the Windows build
+var (
+	_MB_YESNOCANCEL uint32 = 0x00000003
+	_IDYES          int    = 6
+	_IDNO           int    = 7
+)
+
 // ShowMessageBox displays a Windows MessageBox
 // Windows-specific implementation
 func ShowMessageBox(title, text string, flags uint32) int {
