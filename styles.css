@@ -287,6 +287,19 @@ header {
     border-left: 4px solid var(--success-color);
     padding: 1rem;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    margin-bottom: 2rem;
+}
+
+.security-note {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.security-note h3 {
+    color: #856404;
+    margin-top: 0;
 }
 
 /* Contact */

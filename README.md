@@ -158,6 +158,16 @@ The tool will automatically:
 - The tool creates a backup of your configuration before making any changes
 - No data is sent to any server except when you use Leo AI helper with Venice.AI
 
+### Windows SmartScreen Warning
+
+When running the executable on Windows, you may see a "Windows protected your PC" message from SmartScreen. This happens because the executable isn't digitally signed with a certificate.
+
+To run the application:
+1. Click "More info" on the warning dialog
+2. Click "Run anyway" to proceed
+
+This is a standard security feature in Windows for applications downloaded from the internet. The source code is fully open and available for inspection on GitHub.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to submit issues or pull requests.
