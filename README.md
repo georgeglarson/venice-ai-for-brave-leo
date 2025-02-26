@@ -2,7 +2,12 @@
 
 > #BraveAI #VeniceAI #LeoAI #AIHelper #LLM #LLaMA3 #AIConfiguration #BraveExtension
 
+**📱 Website: [georgeglarson.github.io/venice-ai-for-brave-leo](https://georgeglarson.github.io/venice-ai-for-brave-leo)**
+
 A universal tool to seamlessly configure Leo AI helper in Brave browser to use Venice.AI's powerful LLaMA 3.3 70B model. This tool automates the process of setting up your Brave browser to use Venice.AI as your default AI assistant.
+
+[![Website Preview](https://img.shields.io/badge/View_Website-blue?style=for-the-badge&logo=github)](https://georgeglarson.github.io/venice-ai-for-brave-leo)
+[![GitHub Repo](https://img.shields.io/badge/GitHub_Repo-black?style=for-the-badge&logo=github)](https://github.com/georgeglarson/venice-ai-for-brave-leo)
 
 ## ⚡ Quickstart
 
@@ -26,6 +31,16 @@ A universal tool to seamlessly configure Leo AI helper in Brave browser to use V
 3. **Restart Brave browser** to apply the changes
 
 That's it! Your Brave browser is now configured to use Venice.AI with Leo AI helper.
+
+## 🌐 Website
+
+Visit our [project website](https://georgeglarson.github.io/venice-ai-for-brave-leo) for:
+- Easy downloads for all platforms
+- Interactive quickstart guide
+- Detailed documentation
+- Contact information
+
+The website provides a user-friendly interface for downloading and learning about the tool.
 
 ## 🚀 Features
 
