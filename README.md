@@ -63,50 +63,50 @@ The website provides a user-friendly interface for downloading and learning abou
 
 ### Option 1: Download Pre-built Executable (Recommended)
 
-Simply download the executable for your platform from the [Releases page](https://github.com/georgeglarson/leo-venice-config/releases/latest).
+Simply download the executable for your platform from the [Releases page](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest).
 
 ### Option 2: Building from Source (Advanced)
 
 If you prefer to build from source, you'll need:
-- [Go](https://golang.org/dl/) 1.16 or higher
+- [Go](https://golang.org/dl/) 1.22 or higher (project uses Go 1.22.2)
 
 Then follow these steps:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/georgeglarson/leo-venice-config.git
-   cd leo-venice-config
+   git clone https://github.com/georgeglarson/venice-ai-for-brave-leo.git
+   cd venice-ai-for-brave-leo
    ```
 
 2. Initialize the Go module and get dependencies:
    ```bash
-   go mod init leo_venice_config
    go get github.com/google/uuid
    ```
 
-3. Build for your platform:
+3. Build for your platform using the included build scripts:
+
+   **Linux/macOS:**
+   ```bash
+   ./build.sh
+   ```
 
    **Windows:**
    ```bash
-   go build -o leo_venice_config.exe leo_venice_config.go
-   ```
-
-   Or simply run the included build script:
-   ```bash
-   # On Linux/macOS
-   ./build.sh
-
-   # On Windows
    build.bat
    ```
 
-   **Other Platforms (if needed):**
+   These scripts will build executables for all supported platforms (Windows, macOS, and Linux) and place them in the `build` directory.
+
+   **Manual Build (if needed):**
    ```bash
+   # For Windows
+   GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
+
    # For macOS
-   GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac leo_venice_config.go
+   GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
 
    # For Linux
-   GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux leo_venice_config.go
+   GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
    ```
 
 ## 📋 Usage
@@ -176,7 +176,65 @@ This is a standard security feature in Windows for applications downloaded from 
 
 Contributions are welcome! Feel free to submit issues or pull requests.
 
-## 📬 Contact
+## 🚀 Development and Release Process
+
+### Development
+
+The codebase is available in two formats:
+
+1. **Modular Structure** (Recommended for development):
+   - **types.go**: Type definitions and constants
+   - **ui.go**: UI/dialog functions
+   - **browser.go**: Browser-related functions
+   - **preferences.go**: Preferences file manipulation
+   - **main.go**: Main program logic
+   - **messagebox_windows.go**: Windows-specific MessageBox implementation
+   - **messagebox_stub.go**: Stub implementation for non-Windows platforms
+
+2. **Monolithic File**:
+   - **leo_venice_config.go**: A single file containing all functionality, provided for reference and compatibility with older build processes
+
+The modular structure is recommended for development as it provides better organization and maintainability. The build scripts use the modular files to create the executables.
+
+### Building Locally
+
+To build the application locally, use the provided build scripts:
+
+**Linux/macOS:**
+```bash
+./build.sh
+```
+
+**Windows:**
+```batch
+build.bat
+```
+
+### Creating a Release
+
+To create a new release with automatic binary builds:
+
+1. Make sure all your changes are committed and pushed to the repository
+
+2. Run the release script with a version number:
+
+   **Linux/macOS:**
+   ```bash
+   ./release.sh v1.0.2
+   ```
+
+   **Windows:**
+   ```batch
+   release.bat v1.0.2
+   ```
+
+3. The script will create and push a git tag, which will trigger the GitHub Actions workflow
+   
+4. GitHub Actions will automatically build the binaries for all platforms and attach them to the release
+
+5. You can check the status of the build at: https://github.com/georgeglarson/venice-ai-for-brave-leo/actions
+
+## � Contact
 
 For questions or support, contact:
 - Email: george.g.larson@gmail.com
