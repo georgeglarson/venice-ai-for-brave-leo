@@ -1,0 +1,33 @@
+# Build artifacts
+build/
+
+# Go binary
+leo_venice_config
+leo_venice_config.exe
+leo_venice_config_mac
+leo_venice_config_linux
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependency directories
+vendor/
+node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env

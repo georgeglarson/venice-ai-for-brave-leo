@@ -1,0 +1,495 @@
+package main
+
+import (
+    "bufio"
+    "bytes"
+    "encoding/json"
+    "flag"
+    "fmt"
+    "os"
+    "os/exec"
+    "path/filepath"
+    "runtime"
+    "strings"
+    "syscall"
+    "time"
+    "unsafe"
+
+    "github.com/google/uuid"
+)
+
+// Windows API constants and types for MessageBox (Windows only)
+const (
+    MB_OK              = 0x00000000
+    MB_OKCANCEL        = 0x00000001
+    MB_ICONINFORMATION = 0x00000040
+    MB_ICONQUESTION    = 0x00000020
+    IDOK               = 1
+    IDCANCEL           = 2
+)
+
+// Configuration settings
+const (
+    VeniceLabel       = "Venice.AI"
+    VeniceModel       = "llama-3.3-70b"
+    VeniceEndpoint    = "https://api.venice.ai/api/v1/chat/completions"
+    VeniceContextSize = 4000
+)
+
+// CustomModel represents a Leo AI custom model configuration
+type CustomModel struct {
+    APIKey          string `json:"api_key"`
+    ContextSize     int    `json:"context_size"`
+    EndpointURL     string `json:"endpoint_url"`
+    Key             string `json:"key"`
+    Label           string `json:"label"`
+    ModelRequestName string `json:"model_request_name"`
+}
+
+// BravePreferences represents the structure of Brave's Preferences.json file
+type BravePreferences struct {
+    Brave struct {
+        AIChat struct {
+            CustomModels   []CustomModel `json:"custom_models"`
+            DefaultModelKey string       `json:"default_model_key"`
+        } `json:"ai_chat"`
+    } `json:"brave"`
+}
+
+// ShowMessageBox displays a Windows MessageBox (Windows only)
+func ShowMessageBox(title, text string, flags uint32) int {
+    if runtime.GOOS != "windows" {
+        return 0 // No-op on non-Windows
+    }
+    user32 := syscall.NewLazyDLL("user32.dll")
+    getActiveWindow := user32.NewProc("GetActiveWindow")
+    messageBox := user32.NewProc("MessageBoxW")
+    hwnd, _, _ := getActiveWindow.Call()
+    ret, _, _ := messageBox.Call(
+        hwnd,
+        uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(text))),
+        uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))),
+        uintptr(flags),
+    )
+    return int(ret)
+}
+
+// GetAPIKeyFromDialog shows a dialog (Windows) or CLI prompt (other platforms)
+func GetAPIKeyFromDialog() (string, bool) {
+    if runtime.GOOS == "windows" {
+        // Windows-specific PowerShell dialog
+        psScript := `
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "Venice.AI API Key Required"
+$form.Size = New-Object System.Drawing.Size(500, 320)
+$form.StartPosition = "CenterScreen"
+$form.FormBorderStyle = "FixedDialog"
+$form.MaximizeBox = $false
+$form.MinimizeBox = $false
+
+$label = New-Object System.Windows.Forms.Label
+$label.Location = New-Object System.Drawing.Point(20, 20)
+$label.Size = New-Object System.Drawing.Size(460, 20)
+$label.Text = "Please enter your Venice.AI API key to configure Leo AI helper."
+$form.Controls.Add($label)
+
+$linkLabel = New-Object System.Windows.Forms.LinkLabel
+$linkLabel.Location = New-Object System.Drawing.Point(20, 50)
+$linkLabel.Size = New-Object System.Drawing.Size(460, 20)
+$linkLabel.Text = "Click here to generate a new API key at venice.ai/settings/api"
+$linkLabel.LinkArea = New-Object System.Windows.Forms.LinkArea(0, 10)
+$linkLabel.add_LinkClicked({
+    [System.Diagnostics.Process]::Start("https://venice.ai/settings/api")
+})
+$form.Controls.Add($linkLabel)
+
+$inputLabel = New-Object System.Windows.Forms.Label
+$inputLabel.Location = New-Object System.Drawing.Point(20, 90)
+$inputLabel.Size = New-Object System.Drawing.Size(460, 20)
+$inputLabel.Text = "API Key:"
+$form.Controls.Add($inputLabel)
+
+$textBox = New-Object System.Windows.Forms.TextBox
+$textBox.Location = New-Object System.Drawing.Point(20, 120)
+$textBox.Size = New-Object System.Drawing.Size(460, 20)
+$form.Controls.Add($textBox)
+
+$okButton = New-Object System.Windows.Forms.Button
+$okButton.Location = New-Object System.Drawing.Point(310, 160)
+$okButton.Size = New-Object System.Drawing.Size(80, 30)
+$okButton.Text = "Submit"
+$okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$form.AcceptButton = $okButton
+$form.Controls.Add($okButton)
+
+$cancelButton = New-Object System.Windows.Forms.Button
+$cancelButton.Location = New-Object System.Drawing.Point(400, 160)
+$cancelButton.Size = New-Object System.Drawing.Size(80, 30)
+$cancelButton.Text = "Cancel"
+$cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+$form.CancelButton = $cancelButton
+$form.Controls.Add($cancelButton)
+
+$creditLabel = New-Object System.Windows.Forms.Label
+$creditLabel.Location = New-Object System.Drawing.Point(20, 240)
+$creditLabel.Size = New-Object System.Drawing.Size(460, 20)
+$creditLabel.Text = "Created by George Larson - twitter.com/g3ologic - github.com/georgeglarson - george.g.larson@gmail.com"
+$creditLabel.Font = New-Object System.Drawing.Font("Arial", 8)
+$creditLabel.ForeColor = [System.Drawing.Color]::Gray
+$form.Controls.Add($creditLabel)
+
+$form.Topmost = $true
+$form.Add_Shown({$textBox.Focus()})
+$result = $form.ShowDialog()
+
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+    $textBox.Text
+} else {
+    ""
+}
+`
+        tempDir := os.TempDir()
+        psFile := filepath.Join(tempDir, "venice_api_dialog.ps1")
+        err := os.WriteFile(psFile, []byte(psScript), 0644)
+        if err != nil {
+            fmt.Printf("Error creating PowerShell script: %v\n", err)
+            return "", false
+        }
+        defer os.Remove(psFile)
+
+        cmd := exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", psFile)
+        var out bytes.Buffer
+        var stderr bytes.Buffer
+        cmd.Stdout = &out
+        cmd.Stderr = &stderr
+        err = cmd.Run()
+        if err != nil {
+            fmt.Printf("Error executing PowerShell script: %v\nSTDERR: %s\n", err, stderr.String())
+            return "", false
+        }
+
+        result := strings.TrimSpace(out.String())
+        if result == "" {
+            return "", false
+        }
+        return result, true
+    }
+
+    // CLI prompt for macOS and Linux
+    fmt.Println("Please enter your Venice.AI API key (or press Enter to cancel):")
+    fmt.Println("You can find or generate your API key at: https://venice.ai/settings/api")
+    reader := bufio.NewReader(os.Stdin)
+    input, err := reader.ReadString('\n')
+    if err != nil {
+        fmt.Printf("Error reading input: %v\n", err)
+        return "", false
+    }
+    result := strings.TrimSpace(input)
+    if result == "" {
+        return "", false
+    }
+    return result, true
+}
+
+func main() {
+    // Parse command line arguments
+    apiKey := flag.String("key", "", "Venice.AI API key")
+    flag.Parse()
+
+    // Check if API key is provided
+    if *apiKey == "" {
+        fmt.Println("No API key provided via command line, prompting for input...")
+        inputKey, ok := GetAPIKeyFromDialog()
+        if !ok || inputKey == "" {
+            fmt.Println("Error: No API key provided. Operation cancelled.")
+            if runtime.GOOS == "windows" {
+                ShowMessageBox("Canceled", "No API key provided. Configuration aborted.", MB_OK|MB_ICONINFORMATION)
+            }
+            os.Exit(1)
+        }
+        *apiKey = inputKey
+        fmt.Println("API key received.")
+    }
+
+    fmt.Println("Leo Venice.AI Configuration Tool")
+    fmt.Println("================================")
+
+    // Find Brave's Preferences.json file
+    preferencesFile, err := findPreferencesFile()
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        if runtime.GOOS == "windows" {
+            ShowMessageBox("Error", fmt.Sprintf("Could not find Preferences file: %v", err), MB_OK|MB_ICONINFORMATION)
+        }
+        os.Exit(1)
+    }
+    fmt.Printf("Found Preferences file at: %s\n", preferencesFile)
+
+    // Check if Brave is running
+    if isBraveRunning() {
+        fmt.Println("WARNING: Brave browser is currently running.")
+        if runtime.GOOS == "windows" {
+            if ret := ShowMessageBox("Warning", "Brave is running. Continue anyway?", MB_OKCANCEL|MB_ICONQUESTION); ret != IDOK {
+                fmt.Println("Operation cancelled by user.")
+                os.Exit(0)
+            }
+        } else {
+            fmt.Print("Continue anyway? (y/n): ")
+            reader := bufio.NewReader(os.Stdin)
+            response, _ := reader.ReadString('\n')
+            if strings.ToLower(strings.TrimSpace(response)) != "y" {
+                fmt.Println("Operation cancelled by user.")
+                os.Exit(0)
+            }
+        }
+    }
+
+    // Create backup
+    backupFile, err := backupPreferencesFile(preferencesFile)
+    if err != nil {
+        fmt.Printf("Error creating backup: %v\n", err)
+        if runtime.GOOS == "windows" {
+            ShowMessageBox("Error", fmt.Sprintf("Failed to create backup: %v", err), MB_OK|MB_ICONINFORMATION)
+        }
+        os.Exit(1)
+    }
+    fmt.Printf("Backup created at: %s\n", backupFile)
+
+    // Read and parse the Preferences file
+    preferences, err := readPreferencesFile(preferencesFile)
+    if err != nil {
+        fmt.Printf("Error reading Preferences file: %v\n", err)
+        if runtime.GOOS == "windows" {
+            if ShowMessageBox("Error", fmt.Sprintf("Failed to read Preferences: %v\nRestore from backup?", err), MB_OKCANCEL|MB_ICONQUESTION) == IDOK {
+                restoreFromBackup(backupFile, preferencesFile)
+            }
+        } else {
+            fmt.Print("Restore from backup? (y/n): ")
+            reader := bufio.NewReader(os.Stdin)
+            response, _ := reader.ReadString('\n')
+            if strings.ToLower(strings.TrimSpace(response)) == "y" {
+                restoreFromBackup(backupFile, preferencesFile)
+            }
+        }
+        os.Exit(1)
+    }
+
+    // Ensure the required structure exists
+    ensureStructureExists(preferences)
+
+    // Generate a unique key for the model
+    modelKey := fmt.Sprintf("custom:venice_%s", uuid.New().String()[:8])
+
+    // Check if Venice.AI model already exists
+    veniceModelIndex := -1
+    for i, model := range preferences.Brave.AIChat.CustomModels {
+        if model.Label == VeniceLabel {
+            veniceModelIndex = i
+            modelKey = model.Key // Keep the existing key
+            break
+        }
+    }
+
+    // Create the model configuration
+    modelConfig := CustomModel{
+        APIKey:          *apiKey,
+        ContextSize:     VeniceContextSize,
+        EndpointURL:     VeniceEndpoint,
+        Key:             modelKey,
+        Label:           VeniceLabel,
+        ModelRequestName: VeniceModel,
+    }
+
+    // Update or add the Venice.AI model
+    if veniceModelIndex >= 0 {
+        preferences.Brave.AIChat.CustomModels[veniceModelIndex] = modelConfig
+        fmt.Println("Updated existing Venice.AI configuration.")
+    } else {
+        preferences.Brave.AIChat.CustomModels = append(preferences.Brave.AIChat.CustomModels, modelConfig)
+        fmt.Println("Added new Venice.AI configuration.")
+    }
+
+    // Set as default model
+    preferences.Brave.AIChat.DefaultModelKey = modelKey
+
+    // Write back to the Preferences file
+    err = writePreferencesFile(preferencesFile, preferences)
+    if err != nil {
+        fmt.Printf("Error writing Preferences file: %v\n", err)
+        if runtime.GOOS == "windows" {
+            if ShowMessageBox("Error", fmt.Sprintf("Failed to write Preferences: %v\nRestore from backup?", err), MB_OKCANCEL|MB_ICONQUESTION) == IDOK {
+                restoreFromBackup(backupFile, preferencesFile)
+            }
+        } else {
+            fmt.Print("Restore from backup? (y/n): ")
+            reader := bufio.NewReader(os.Stdin)
+            response, _ := reader.ReadString('\n')
+            if strings.ToLower(strings.TrimSpace(response)) == "y" {
+                restoreFromBackup(backupFile, preferencesFile)
+            }
+        }
+        os.Exit(1)
+    }
+
+    fmt.Println("Successfully updated Leo AI helper to use Venice.AI!")
+    fmt.Println("Please restart Brave browser for changes to take effect.")
+    if runtime.GOOS == "windows" {
+        ShowMessageBox("Success", "Leo AI updated to use Venice.AI!\nPlease restart Brave to apply changes.", MB_OK|MB_ICONINFORMATION)
+    }
+}
+
+// findPreferencesFile finds Brave's Preferences.json file based on the OS
+func findPreferencesFile() (string, error) {
+    var possiblePaths []string
+    switch runtime.GOOS {
+    case "windows":
+        localAppData := os.Getenv("LOCALAPPDATA")
+        possiblePaths = []string{
+            filepath.Join(localAppData, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Preferences"),
+            filepath.Join(localAppData, "Brave Software", "Brave-Browser", "User Data", "Default", "Preferences"),
+        }
+    case "darwin": // macOS
+        homeDir, _ := os.UserHomeDir()
+        possiblePaths = []string{
+            filepath.Join(homeDir, "Library", "Application Support", "BraveSoftware", "Brave-Browser", "Default", "Preferences"),
+            filepath.Join(homeDir, "Library", "Application Support", "Brave Software", "Brave-Browser", "Default", "Preferences"),
+        }
+    default: // Linux and others
+        homeDir, _ := os.UserHomeDir()
+        possiblePaths = []string{
+            filepath.Join(homeDir, ".config", "BraveSoftware", "Brave-Browser", "Default", "Preferences"),
+            filepath.Join(homeDir, ".config", "brave-browser", "Default", "Preferences"),
+        }
+    }
+
+    for _, path := range possiblePaths {
+        if _, err := os.Stat(path); err == nil {
+            return path, nil
+        }
+    }
+    return "", fmt.Errorf("could not find Brave browser's Preferences file")
+}
+
+// isBraveRunning checks if Brave browser is currently running
+func isBraveRunning() bool {
+    switch runtime.GOOS {
+    case "windows":
+        possibleProcesses := []string{
+            "brave.exe",
+            "brave-browser.exe",
+            "BraveBrowser.exe",
+            "Brave.exe",
+            "Brave-Browser.exe",
+        }
+        for _, process := range possibleProcesses {
+            cmd := exec.Command("tasklist", "/FI", fmt.Sprintf("IMAGENAME eq %s", process), "/NH")
+            output, err := cmd.Output()
+            if err == nil && len(output) > 0 && !strings.Contains(string(output), "No tasks") && !strings.Contains(string(output), "INFO: No tasks") {
+                return true
+            }
+        }
+        return false
+    case "darwin": // macOS
+        cmd := exec.Command("pgrep", "-i", "brave")
+        output, err := cmd.Output()
+        return err == nil && len(output) > 0
+    default: // Linux and others
+        cmd := exec.Command("pgrep", "-i", "brave")
+        output, err := cmd.Output()
+        return err == nil && len(output) > 0
+    }
+}
+
+// backupPreferencesFile creates a backup of the Preferences file
+func backupPreferencesFile(filePath string) (string, error) {
+    backupPath := fmt.Sprintf("%s.backup_%s", filePath, time.Now().Format("20060102_150405"))
+    input, err := os.ReadFile(filePath)
+    if err != nil {
+        return "", err
+    }
+    err = os.WriteFile(backupPath, input, 0644)
+    if err != nil {
+        return "", err
+    }
+    return backupPath, nil
+}
+
+// readPreferencesFile reads and parses the Preferences file
+func readPreferencesFile(filePath string) (*BravePreferences, error) {
+    data, err := os.ReadFile(filePath)
+    if err != nil {
+        return nil, err
+    }
+    var preferences BravePreferences
+    err = json.Unmarshal(data, &preferences)
+    if err != nil {
+        return nil, err
+    }
+    return &preferences, nil
+}
+
+// ensureStructureExists ensures that the required JSON structure exists
+func ensureStructureExists(preferences *BravePreferences) {
+    if preferences.Brave.AIChat.CustomModels == nil {
+        preferences.Brave.AIChat.CustomModels = []CustomModel{}
+    }
+}
+
+// writePreferencesFile writes the updated preferences back to the file
+func writePreferencesFile(filePath string, preferences *BravePreferences) error {
+    originalData, err := os.ReadFile(filePath)
+    if err != nil {
+        return err
+    }
+    var originalJSON map[string]interface{}
+    err = json.Unmarshal(originalData, &originalJSON)
+    if err != nil {
+        return err
+    }
+
+    if _, ok := originalJSON["brave"]; !ok {
+        originalJSON["brave"] = map[string]interface{}{}
+    }
+    brave := originalJSON["brave"].(map[string]interface{})
+    if _, ok := brave["ai_chat"]; !ok {
+        brave["ai_chat"] = map[string]interface{}{}
+    }
+    aiChat := brave["ai_chat"].(map[string]interface{})
+    
+    customModelsJSON, err := json.Marshal(preferences.Brave.AIChat.CustomModels)
+    if err != nil {
+        return err
+    }
+    var customModels []interface{}
+    err = json.Unmarshal(customModelsJSON, &customModels)
+    if err != nil {
+        return err
+    }
+    aiChat["custom_models"] = customModels
+    aiChat["default_model_key"] = preferences.Brave.AIChat.DefaultModelKey
+
+    updatedData, err := json.MarshalIndent(originalJSON, "", "  ")
+    if err != nil {
+        return err
+    }
+    return os.WriteFile(filePath, updatedData, 0644)
+}
+
+// restoreFromBackup restores the Preferences file from backup
+func restoreFromBackup(backupFile, originalFile string) {
+    fmt.Println("Restoring from backup...")
+    input, err := os.ReadFile(backupFile)
+    if err != nil {
+        fmt.Printf("Error reading backup file: %v\n", err)
+        return
+    }
+    err = os.WriteFile(originalFile, input, 0644)
+    if err != nil {
+        fmt.Printf("Error restoring from backup: %v\n", err)
+        return
+    }
+    fmt.Println("Successfully restored from backup.")
+}
