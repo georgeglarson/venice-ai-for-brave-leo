@@ -1,0 +1,108 @@
+name: Build Binaries
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Install dependencies
+        run: go get github.com/google/uuid
+
+      - name: Build Windows binary
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
+          zip -r leo_venice_config_windows.zip leo_venice_config.exe
+
+      - name: Build macOS binary
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+          chmod +x leo_venice_config_mac
+          zip -r leo_venice_config_mac.zip leo_venice_config_mac
+
+      - name: Build Linux binary
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+          chmod +x leo_venice_config_linux
+          zip -r leo_venice_config_linux.zip leo_venice_config_linux
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: leo_venice_config_windows
+          path: leo_venice_config_windows.zip
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: leo_venice_config_mac
+          path: leo_venice_config_mac.zip
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: leo_venice_config_linux
+          path: leo_venice_config_linux.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./leo_venice_config_windows/leo_venice_config_windows.zip
+          asset_name: leo_venice_config.exe.zip
+          asset_content_type: application/zip
+
+      - name: Upload macOS Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./leo_venice_config_mac/leo_venice_config_mac.zip
+          asset_name: leo_venice_config_mac.zip
+          asset_content_type: application/zip
+
+      - name: Upload Linux Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./leo_venice_config_linux/leo_venice_config_linux.zip
+          asset_name: leo_venice_config_linux.zip
+          asset_content_type: application/zip
