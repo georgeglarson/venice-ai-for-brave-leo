@@ -2,7 +2,7 @@ package main
 
 // Configuration settings
 const (
-	AppVersion        = "v1.0.4"
+	AppVersion        = "v1.0.6"
 	VeniceLabel       = "Venice.AI"
 	VeniceModel       = "llama-3.3-70b"
 	VeniceEndpoint    = "https://api.venice.ai/api/v1/chat/completions"
