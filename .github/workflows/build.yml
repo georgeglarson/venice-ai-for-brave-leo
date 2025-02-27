@@ -66,8 +66,8 @@ jobs:
 
       - name: Build Windows binary
         run: |
-          # Build with the files that actually exist
-          GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe
+          # Build with the files that actually exist - exclude leo_venice_config.go which has been split into separate files
+          GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
           
           # Create a self-signed certificate for code signing
           # Note: This won't eliminate Windows security warnings but can help reduce them
@@ -87,13 +87,13 @@ jobs:
 
       - name: Build macOS binary
         run: |
-          GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac
+          GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
           chmod +x leo_venice_config_mac
           zip -r leo_venice_config_mac.zip leo_venice_config_mac
 
       - name: Build Linux binary
         run: |
-          GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux
+          GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
           chmod +x leo_venice_config_linux
           zip -r leo_venice_config_linux.zip leo_venice_config_linux
 
