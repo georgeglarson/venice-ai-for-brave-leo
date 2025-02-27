@@ -8,6 +8,8 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:  # Allow manual triggering
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
 
 # Add permissions for the GITHUB_TOKEN
 permissions:
@@ -23,6 +25,25 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.22'
+
+      - name: Generate version number
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Use the tag name if this is a tag-triggered build
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            # Generate a version based on date for scheduled or manual builds
+            echo "VERSION=v$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+          fi
+          echo "Generated version: $(cat $GITHUB_OUTPUT | grep VERSION | cut -d= -f2)"
+
+      - name: Update version in code
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          echo "Updating version to $VERSION"
+          sed -i "s/AppVersion        = \"v[0-9.]*\"/AppVersion        = \"$VERSION\"/" types.go
+          cat types.go | grep AppVersion
 
       - name: Initialize Go module and install dependencies
         run: |
@@ -81,18 +102,31 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+
+      - name: Generate version number
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Use the tag name if this is a tag-triggered build
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            # Generate a version based on date for scheduled or manual builds
+            echo "VERSION=v$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+          fi
+          echo "Generated version: $(cat $GITHUB_OUTPUT | grep VERSION | cut -d= -f2)"
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Release ${{ github.ref }}
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Venice AI for Brave Leo ${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
           files: |

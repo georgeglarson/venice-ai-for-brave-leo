@@ -74,7 +74,7 @@ $creditLabel = New-Object System.Windows.Forms.Label
 $creditLabel.Location = New-Object System.Drawing.Point(20, 220)
 $creditLabel.Size = New-Object System.Drawing.Size(460, 40)
 $creditLabel.Text = "Created by George Larson (github.com/georgeglarson)
-Please consider me for your next software engineering role!"
+@g3ologic"
 $creditLabel.Font = New-Object System.Drawing.Font("Arial", 8)
 $creditLabel.ForeColor = [System.Drawing.Color]::Gray
 $form.Controls.Add($creditLabel)
