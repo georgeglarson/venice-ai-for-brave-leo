@@ -68,6 +68,21 @@ jobs:
         run: |
           # Build with the files that actually exist
           GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe
+          
+          # Create a self-signed certificate for code signing
+          # Note: This won't eliminate Windows security warnings but can help reduce them
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout codesign.key -out codesign.crt -subj "/CN=George Larson/O=Venice AI/C=US"
+          openssl pkcs12 -export -out codesign.pfx -inkey codesign.key -in codesign.crt -passout pass:password
+          
+          # Install osslsigncode for signing Windows executables
+          sudo apt-get update
+          sudo apt-get install -y osslsigncode
+          
+          # Sign the executable
+          osslsigncode sign -pkcs12 codesign.pfx -pass password -n "Venice AI for Brave Leo" -i "https://github.com/georgeglarson/venice-ai-for-brave-leo" -in leo_venice_config.exe -out leo_venice_config_signed.exe
+          mv leo_venice_config_signed.exe leo_venice_config.exe
+          
+          # Create zip file
           zip -r leo_venice_config.exe.zip leo_venice_config.exe
 
       - name: Build macOS binary
