@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -26,7 +26,7 @@ jobs:
       - name: Build Windows binary
         run: |
           GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
-          zip -r leo_venice_config_windows.zip leo_venice_config.exe
+          zip -r leo_venice_config.exe.zip leo_venice_config.exe
 
       - name: Build macOS binary
         run: |
@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: leo_venice_config_windows
-          path: leo_venice_config_windows.zip
+          path: leo_venice_config.exe.zip
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -66,43 +66,15 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-
-      - name: Upload Windows Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./leo_venice_config_windows/leo_venice_config_windows.zip
-          asset_name: leo_venice_config.exe.zip
-          asset_content_type: application/zip
-
-      - name: Upload macOS Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./leo_venice_config_mac/leo_venice_config_mac.zip
-          asset_name: leo_venice_config_mac.zip
-          asset_content_type: application/zip
-
-      - name: Upload Linux Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./leo_venice_config_linux/leo_venice_config_linux.zip
-          asset_name: leo_venice_config_linux.zip
-          asset_content_type: application/zip
+          files: |
+            ./leo_venice_config_windows/leo_venice_config.exe.zip
+            ./leo_venice_config_mac/leo_venice_config_mac.zip
+            ./leo_venice_config_linux/leo_venice_config_linux.zip
