@@ -12,17 +12,17 @@ A universal tool to seamlessly configure Leo AI helper in Brave browser to use V
 ## ⚡ Quickstart
 
 1. **Download the executable** for your platform:
-   - [Windows (leo_venice_config.exe)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe)
-   - [macOS (leo_venice_config_mac)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_mac)
-   - [Linux (leo_venice_config_linux)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_linux)
+   - [Windows (leo_venice_config.exe.zip)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config.exe.zip)
+   - [macOS (leo_venice_config_mac.zip)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_mac.zip)
+   - [Linux (leo_venice_config_linux.zip)](https://github.com/georgeglarson/venice-ai-for-brave-leo/releases/latest/download/leo_venice_config_linux.zip)
 
-2. **Run the executable**:
-   - **Windows**: Double-click the downloaded file or run it from the command line
-   - **macOS**: Open Terminal, navigate to the download location, and run:
+2. **Extract and run the executable**:
+   - **Windows**: Extract the zip file, then double-click the .exe file or run it from the command line
+   - **macOS**: Extract the zip file, open Terminal, navigate to the download location, and run:
      ```bash
      chmod +x ./leo_venice_config_mac && ./leo_venice_config_mac
      ```
-   - **Linux**: Open Terminal, navigate to the download location, and run:
+   - **Linux**: Extract the zip file, open Terminal, navigate to the download location, and run:
      ```bash
      chmod +x ./leo_venice_config_linux && ./leo_venice_config_linux
      ```
@@ -101,12 +101,15 @@ Then follow these steps:
    ```bash
    # For Windows
    GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
+   zip -r leo_venice_config.exe.zip leo_venice_config.exe
 
    # For macOS
    GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+   zip -r leo_venice_config_mac.zip leo_venice_config_mac
 
    # For Linux
    GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+   zip -r leo_venice_config_linux.zip leo_venice_config_linux
    ```
 
 ## 📋 Usage
@@ -162,13 +165,23 @@ The tool will automatically:
 - The tool creates a backup of your configuration before making any changes
 - No data is sent to any server except when you use Leo AI helper with Venice.AI
 
-### Windows SmartScreen Warning
+### Windows Security Warnings
 
-When running the executable on Windows, you may see a "Windows protected your PC" message from SmartScreen. This happens because the executable isn't digitally signed with a certificate.
+When running the executable on Windows, you may see a "Windows protected your PC" message from SmartScreen or it may be flagged by antivirus software. This happens because:
+
+1. The executable isn't digitally signed with a certificate
+2. It modifies system files (specifically Brave's Preferences file)
+3. It's a relatively new and unknown application
 
 To run the application:
-1. Click "More info" on the warning dialog
+1. Click "More info" on the SmartScreen warning dialog
 2. Click "Run anyway" to proceed
+3. If your antivirus blocks it, you may need to add an exception
+
+For maximum security, you can:
+1. Review the [source code on GitHub](https://github.com/georgeglarson/venice-ai-for-brave-leo)
+2. Build the application yourself from source
+3. Run the application in a sandbox or virtual machine
 
 This is a standard security feature in Windows for applications downloaded from the internet. The source code is fully open and available for inspection on GitHub.
 
