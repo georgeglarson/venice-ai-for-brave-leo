@@ -70,7 +70,6 @@ $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 $form.CancelButton = $cancelButton
 $form.Controls.Add($cancelButton)
 
-# Create credit label with job hunt reminder
 $creditLabel = New-Object System.Windows.Forms.Label
 $creditLabel.Location = New-Object System.Drawing.Point(20, 220)
 $creditLabel.Size = New-Object System.Drawing.Size(460, 40)
