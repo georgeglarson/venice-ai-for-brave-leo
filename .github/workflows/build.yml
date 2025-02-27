@@ -9,6 +9,10 @@ on:
     branches: [ main ]
   workflow_dispatch:  # Allow manual triggering
 
+# Add permissions for the GITHUB_TOKEN
+permissions:
+  contents: write  # This is required for creating releases and uploading assets
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,20 +29,35 @@ jobs:
           go mod tidy
           go get github.com/google/uuid
 
+      - name: List repository contents
+        run: |
+          echo "Repository contents:"
+          ls -la
+          echo "Go files:"
+          find . -name "*.go" -type f
+
+      - name: List repository contents
+        run: |
+          echo "Repository contents:"
+          ls -la
+          echo "Go files:"
+          find . -name "*.go" -type f
+
       - name: Build Windows binary
         run: |
-          GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
+          # Build with the files that actually exist
+          GOOS=windows GOARCH=amd64 go build -o leo_venice_config.exe
           zip -r leo_venice_config.exe.zip leo_venice_config.exe
 
       - name: Build macOS binary
         run: |
-          GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+          GOOS=darwin GOARCH=amd64 go build -o leo_venice_config_mac
           chmod +x leo_venice_config_mac
           zip -r leo_venice_config_mac.zip leo_venice_config_mac
 
       - name: Build Linux binary
         run: |
-          GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
+          GOOS=linux GOARCH=amd64 go build -o leo_venice_config_linux
           chmod +x leo_venice_config_linux
           zip -r leo_venice_config_linux.zip leo_venice_config_linux
 
