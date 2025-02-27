@@ -187,11 +187,23 @@
             
             <div class="security-note">
                 <h3>⚠️ Security Note for Windows Users</h3>
-                <p>When running the executable on Windows, you may see a "Windows protected your PC" message from SmartScreen. This happens because the executable isn't digitally signed with a certificate.</p>
+                <p>When running the executable on Windows, you may see a "Windows protected your PC" message from SmartScreen or it may be flagged by antivirus software. This happens because:</p>
+                <ol>
+                    <li>The executable isn't digitally signed with a certificate</li>
+                    <li>It modifies system files (specifically Brave's Preferences file)</li>
+                    <li>It's a relatively new and unknown application</li>
+                </ol>
                 <p>To run the application:</p>
                 <ol>
-                    <li>Click "More info" on the warning dialog</li>
+                    <li>Click "More info" on the SmartScreen warning dialog</li>
                     <li>Click "Run anyway" to proceed</li>
+                    <li>If your antivirus blocks it, you may need to add an exception</li>
+                </ol>
+                <p>For maximum security, you can:</p>
+                <ol>
+                    <li>Review the <a href="https://github.com/georgeglarson/venice-ai-for-brave-leo" target="_blank">source code on GitHub</a></li>
+                    <li>Build the application yourself from source</li>
+                    <li>Run the application in a sandbox or virtual machine</li>
                 </ol>
                 <p>This is a standard security feature in Windows for applications downloaded from the internet. The source code is fully open and available for inspection on GitHub.</p>
             </div>
