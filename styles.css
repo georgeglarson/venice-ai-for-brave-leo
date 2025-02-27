@@ -375,3 +375,46 @@ footer {
         margin-bottom: 0.5rem;
     }
 }
+
+/* GitHub Pages Attribution */
+body::after {
+    content: "";
+    display: block;
+    margin-top: 20px;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--light-text-color);
+    background-color: var(--alt-background-color);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Style for GitHub Pages attribution if it appears in other elements */
+.site-footer,
+footer::after,
+.github-attribution {
+    font-size: 0.85rem;
+    color: var(--light-text-color);
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 10px;
+    background-color: var(--alt-background-color);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Links in attribution */
+.site-footer a,
+footer::after a,
+.github-attribution a,
+body::after a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.site-footer a:hover,
+footer::after a:hover,
+.github-attribution a:hover,
+body::after a:hover {
+    text-decoration: underline;
+}

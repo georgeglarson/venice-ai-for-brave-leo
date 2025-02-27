@@ -13,18 +13,17 @@ REM Build for Windows
 echo Building for Windows (amd64)...
 set GOOS=windows
 set GOARCH=amd64
-go build -o build\leo_venice_config.exe leo_venice_config.go
+go build -o build\leo_venice_config.exe main.go types.go ui.go browser.go preferences.go messagebox_windows.go
 if %ERRORLEVEL% EQU 0 (
     echo ✓ Windows build successful: build\leo_venice_config.exe
 ) else (
     echo ✗ Windows build failed
 )
-
 REM Build for macOS
 echo Building for macOS (amd64)...
 set GOOS=darwin
 set GOARCH=amd64
-go build -o build\leo_venice_config_mac leo_venice_config.go
+go build -o build\leo_venice_config_mac main.go types.go ui.go browser.go preferences.go messagebox_stub.go
 if %ERRORLEVEL% EQU 0 (
     echo ✓ macOS build successful: build\leo_venice_config_mac
 ) else (
@@ -35,7 +34,7 @@ REM Build for Linux
 echo Building for Linux (amd64)...
 set GOOS=linux
 set GOARCH=amd64
-go build -o build\leo_venice_config_linux leo_venice_config.go
+go build -o build\leo_venice_config_linux main.go types.go ui.go browser.go preferences.go messagebox_stub.go
 if %ERRORLEVEL% EQU 0 (
     echo ✓ Linux build successful: build\leo_venice_config_linux
 ) else (

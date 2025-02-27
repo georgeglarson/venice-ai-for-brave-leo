@@ -22,7 +22,6 @@ jobs:
 
       - name: Initialize Go module and install dependencies
         run: |
-          go mod init leo_venice_config
           go mod tidy
           go get github.com/google/uuid
 
